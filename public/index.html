@@ -1,97 +1,439 @@
+
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RBR Rankings</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RBR Rankings</title>
 <style>
-:root{font-family:Inter,system-ui,sans-serif;color:#e8edff;background:#0a0d19}*{box-sizing:border-box}
+:root{font-family:Inter,system-ui,sans-serif;color:#e8edff;background:#0a0d19}
+*{box-sizing:border-box}
 body{margin:0;min-height:100vh;background:radial-gradient(circle at 70% 0%,#24315a 0%,#0a0d19 47%)}
-.wrap{max-width:1400px;margin:auto;padding:44px 20px}.eyebrow{font-size:12px;letter-spacing:.18em;color:#9faeff;font-weight:800}h1{font-size:clamp(36px,5vw,60px);letter-spacing:-.055em;margin:10px 0}p{color:#aab3d0}
+.wrap{max-width:1400px;margin:auto;padding:44px 20px}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:#9faeff;font-weight:800}
+h1{font-size:clamp(36px,5vw,60px);letter-spacing:-.055em;margin:10px 0}
+p{color:#aab3d0}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px;align-items:start;margin-top:28px}
 .panel{background:#141a2cee;border:1px solid #303b58;border-radius:20px;overflow:hidden;box-shadow:0 18px 65px #0005}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;padding:18px;border-bottom:1px solid #303b58}
-input,button,select{font:inherit;border-radius:10px;padding:11px 13px}input,select{background:#0d1324;border:1px solid #394464;color:white;outline:none}input:focus,select:focus{border-color:#8b9ef5}select{cursor:pointer}#search{flex:1;min-width:185px}button{background:#273456;border:1px solid #455378;color:white;cursor:pointer}button:hover:not(:disabled){background:#394c7e}button:disabled{opacity:.35;cursor:not-allowed}
-.status{font-size:13px;color:#aeb9d6;padding:0 20px}.head,.player{display:grid;grid-template-columns:70px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:14px 20px}.head{text-transform:uppercase;font-size:11px;letter-spacing:.12em;color:#8794b7}.player{width:100%;border:0;border-top:1px solid #27324c;border-radius:0;text-align:left;background:transparent;color:inherit}.player:hover,.player.active{background:#263554}.rank{font-weight:800;color:#a9b8f6}.name{font-weight:650;overflow-wrap:anywhere}.score{text-align:right;font-variant-numeric:tabular-nums}
-.footer{padding:18px 20px;display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:1px solid #303b58}.muted{font-size:12px;color:#99a9c8}.pagination{display:flex;align-items:center;gap:7px}.pagination button{min-width:42px}.page-input{width:68px;min-width:0;text-align:center;padding:11px 7px;appearance:textfield}.page-input::-webkit-inner-spin-button,.page-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.details{position:sticky;top:18px;padding:23px;min-height:295px}.details h2{font-size:22px;letter-spacing:-.03em;overflow-wrap:anywhere;margin:8px 0}.section-title{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#91a3d6;font-weight:800}.avatar{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#5675d9,#9568ca);display:grid;place-items:center;font-weight:800;font-size:24px;margin:17px 0}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.stat{background:#0e1527;border:1px solid #303b58;border-radius:12px;padding:14px;min-width:0}.stat small{display:block;color:#9aaad0;margin-bottom:8px}.stat strong{font-size:21px;overflow-wrap:anywhere}.info{margin-top:22px}.info-row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #303b58;font-size:12px}.info-row span:first-child{color:#92a3cb}.info-row span:last-child{text-align:right;overflow-wrap:anywhere}.empty{padding:30px 0;color:#91a3c6}.error{color:#ffb3b3;font-size:12px}
-@media(max-width:850px){.layout{grid-template-columns:minmax(0,1fr)}.details{position:static;min-height:150px}}
-@media(max-width:500px){.wrap{padding:26px 10px}.head,.player{grid-template-columns:48px minmax(0,1fr) 83px;gap:8px;padding:14px 12px}.toolbar{padding:12px}.footer{padding:12px}}
-</style></head><body><main class="wrap">
-<div class="eyebrow">ROCKET BOT ROYALE · RANKINGS</div><h1>Global leaderboard<span style="color:#869bff">.</span></h1><p>Browse 100 players per page, or search the top 10,000 by display name.</p>
-<div class="layout"><section class="panel"><div class="toolbar"><select id="board" aria-label="Leaderboard"><option value="trophies">🏆 Trophies</option><option value="points">⭐ Points</option></select><select id="season" aria-label="Season"></select><input id="search" placeholder="Search player names…" aria-label="Search players"><button id="refresh">Refresh</button></div>
-<p id="status" class="status">Loading…</p><div class="head"><span>Rank</span><span>Player</span><span id="scoreHeader" style="text-align:right">Trophies</span></div><div id="rows"></div>
-<div class="footer"><span id="page" class="muted">Page 1</span><div class="pagination"><button id="prev" aria-label="Previous page">&lt;</button><input id="pageInput" class="page-input" type="number" min="1" step="1" value="1" aria-label="Page number"><button id="next" aria-label="Next page">&gt;</button></div></div></section>
-<aside class="panel details" id="details" aria-label="Player statistics" aria-live="polite"><div class="section-title">Player details</div><div id="detailContent" class="empty">Select a player from the leaderboard to view their statistics.</div></aside></div></main>
+input,button,select{font:inherit;border-radius:10px;padding:11px 13px}
+input,select{background:#0d1324;border:1px solid #394464;color:white;outline:none}
+input:focus,select:focus{border-color:#8b9ef5}
+select{cursor:pointer}
+#search{flex:1;min-width:185px}
+button{background:#273456;border:1px solid #455378;color:white;cursor:pointer}
+button:hover:not(:disabled){background:#394c7e}
+button:disabled{opacity:.35;cursor:not-allowed}
+.status{font-size:13px;color:#aeb9d6;padding:0 20px}
+.head,.player{display:grid;grid-template-columns:70px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:14px 20px}
+.head{text-transform:uppercase;font-size:11px;letter-spacing:.12em;color:#8794b7}
+.player{width:100%;border:0;border-top:1px solid #27324c;border-radius:0;text-align:left;background:transparent;color:inherit}
+.player:hover,.player.active{background:#263554}
+.rank{font-weight:800;color:#a9b8f6}
+.name{font-weight:650;overflow-wrap:anywhere}
+.score{text-align:right;font-variant-numeric:tabular-nums}
+.footer{padding:18px 20px;display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:1px solid #303b58}
+.muted{font-size:12px;color:#99a9c8}
+.pagination{display:flex;align-items:center;gap:7px}
+.pagination button{min-width:42px}
+.page-input{width:68px;min-width:0;text-align:center;padding:11px 7px;appearance:textfield}
+.page-input::-webkit-inner-spin-button,.page-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.details{position:sticky;top:18px;padding:23px;min-height:295px}
+.details h2{font-size:22px;letter-spacing:-.03em;overflow-wrap:anywhere;margin:8px 0}
+.section-title{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#91a3d6;font-weight:800}
+.avatar{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#5675d9,#9568ca);display:grid;place-items:center;font-weight:800;font-size:24px;margin:17px 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.stat{background:#0e1527;border:1px solid #303b58;border-radius:12px;padding:14px;min-width:0}
+.stat small{display:block;color:#9aaad0;margin-bottom:8px}
+.stat strong{font-size:21px;overflow-wrap:anywhere}
+.info{margin-top:22px}
+.info-row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #303b58;font-size:12px}
+.info-row span:first-child{color:#92a3cb}
+.info-row span:last-child{text-align:right;overflow-wrap:anywhere}
+.empty{padding:30px 0;color:#91a3c6}
+.error{color:#ffb3b3;font-size:12px}
+@media(max-width:850px){
+.layout{grid-template-columns:minmax(0,1fr)}
+.details{position:static;min-height:150px}
+}
+@media(max-width:500px){
+.wrap{padding:26px 10px}
+.head,.player{grid-template-columns:48px minmax(0,1fr) 83px;gap:8px;padding:14px 12px}
+.toolbar{padding:12px}
+.footer{padding:12px}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="eyebrow">ROCKET BOT ROYALE · RANKINGS</div>
+<h1>Global leaderboard<span style="color:#869bff">.</span></h1>
+<p>Browse 100 players per page, or search the top 10,000 by display name.</p>
+
+<div class="layout">
+<section class="panel">
+<div class="toolbar">
+<select id="board" aria-label="Leaderboard">
+<option value="trophies">🏆 Trophies</option>
+<option value="points">⭐ Points</option>
+</select>
+<select id="season" aria-label="Season"></select>
+<input id="search" placeholder="Search player names…" aria-label="Search players">
+<button id="refresh">Refresh</button>
+</div>
+<p id="status" class="status">Loading…</p>
+<div class="head">
+<span>Rank</span>
+<span>Player</span>
+<span id="scoreHeader" style="text-align:right">Trophies</span>
+</div>
+<div id="rows"></div>
+<div class="footer">
+<span id="page" class="muted">Page 1</span>
+<div class="pagination">
+<button id="prev" aria-label="Previous page">&lt;</button>
+<input id="pageInput" class="page-input" type="number" min="1" step="1" value="1" aria-label="Page number">
+<button id="next" aria-label="Next page">&gt;</button>
+</div>
+</div>
+</section>
+
+<aside class="panel details" id="details" aria-label="Player statistics" aria-live="polite">
+<div class="section-title">Player details</div>
+<div id="detailContent" class="empty">
+Select a player from the leaderboard to view their statistics.
+</div>
+</aside>
+</div>
+</main>
+
 <script>
 const $=id=>document.getElementById(id);
-const fmt=value=>value==null||!Number.isFinite(Number(value))?'—':Number(value).toLocaleString();
-const scoreLabel=()=> $('board').value==='points'?'Points':'Trophies';
+
+const fmt=value=>
+  value==null||!Number.isFinite(Number(value))
+    ?'—'
+    :Number(value).toLocaleString();
+
+const scoreLabel=()=>
+  $('board').value==='points'?'Points':'Trophies';
+
 const season=$('season');
-for(let s=60;s>=0;s--){const opt=document.createElement('option');opt.value=String(s);opt.textContent='Season '+s;season.append(opt)}
+
+for(let s=60;s>=0;s--){
+  const opt=document.createElement('option');
+  opt.value=String(s);
+  opt.textContent='Season '+s;
+  season.append(opt);
+}
+
 season.value='60';
-let page=1,hasNext=false,controller=null,detailController=null,timer=null,selected=null;
-function put(parent,tag,content,cls){const node=document.createElement(tag);node.textContent=String(content);if(cls)node.className=cls;parent.append(node);return node}
+
+let page=1;
+let hasNext=false;
+let controller=null;
+let detailController=null;
+let timer=null;
+let selected=null;
+
+function put(parent,tag,content,cls){
+  const node=document.createElement(tag);
+  node.textContent=String(content);
+  if(cls)node.className=cls;
+  parent.append(node);
+  return node;
+}
+
 function render(records,total){
- $('rows').replaceChildren();$('scoreHeader').textContent=scoreLabel();
- for(const player of records){
-  const row=document.createElement('button');row.type='button';row.className='player'+(selected?.id&&player.id===selected.id?' active':'');
-  put(row,'span','#'+fmt(player.rank),'rank');put(row,'span',player.name,'name');put(row,'span',fmt(player.score),'score');
-  row.onclick=()=>showPlayer(player);$('rows').append(row);
- }
- if(!records.length)put($('rows'),'p','No players found.','status');
- $('page').textContent='Page '+page+(total===null?' · ranks '+((page-1)*100+1)+'–'+page*100:' · '+fmt(total)+' matches');
- $('pageInput').value=page;$('prev').disabled=page<=1;$('next').disabled=!hasNext;
+  $('rows').replaceChildren();
+  $('scoreHeader').textContent=scoreLabel();
+
+  for(const player of records){
+    const row=document.createElement('button');
+    row.type='button';
+    row.className='player'+(
+      selected?.id&&player.id===selected.id?' active':''
+    );
+
+    put(row,'span','#'+fmt(player.rank),'rank');
+    put(row,'span',player.name,'name');
+    put(row,'span',fmt(player.score),'score');
+
+    row.onclick=()=>showPlayer(player);
+    $('rows').append(row);
+  }
+
+  if(!records.length){
+    put($('rows'),'p','No players found.','status');
+  }
+
+  $('page').textContent='Page '+page+(
+    total===null
+      ?' · ranks '+((page-1)*100+1)+'–'+page*100
+      :' · '+fmt(total)+' matches'
+  );
+
+  $('pageInput').value=page;
+  $('prev').disabled=page<=1;
+  $('next').disabled=!hasNext;
 }
+
 async function load(){
- controller?.abort();controller=new AbortController();const signal=controller.signal;
- $('status').textContent='Loading '+($('search').value.trim()?'search results':'page '+page)+'…';$('prev').disabled=$('next').disabled=true;
- try{
-  const qs=new URLSearchParams({board:$('board').value,season:season.value,page:String(page),search:$('search').value.trim()});
-  const res=await fetch('/api/leaderboard?'+qs,{signal});const data=await res.json();if(!res.ok)throw Error(data.error||'Leaderboard failed');
-  hasNext=Boolean(data.hasNext);$('status').textContent=data.searchScope?'Searching top 10,000 players · 100 results per page':'100 players per page · Select a player for stats';render(data.records||[],data.total??null);
- }catch(err){if(err.name==='AbortError')return;hasNext=false;$('status').textContent='Error: '+err.message;render([],null)}
+  controller?.abort();
+  controller=new AbortController();
+
+  const signal=controller.signal;
+
+  $('status').textContent='Loading '+(
+    $('search').value.trim()
+      ?'search results'
+      :'page '+page
+  )+'…';
+
+  $('prev').disabled=true;
+  $('next').disabled=true;
+
+  try{
+    const qs=new URLSearchParams({
+      board:$('board').value,
+      season:season.value,
+      page:String(page),
+      search:$('search').value.trim()
+    });
+
+    const res=await fetch('/api/leaderboard?'+qs,{signal});
+    const data=await res.json();
+
+    if(!res.ok){
+      throw Error(data.error||'Leaderboard failed');
+    }
+
+    hasNext=Boolean(data.hasNext);
+
+    $('status').textContent=data.searchScope
+      ?'Searching top 10,000 players · 100 results per page'
+      :'100 players per page · Select a player for stats';
+
+    render(data.records||[],data.total??null);
+  }catch(err){
+    if(err.name==='AbortError')return;
+
+    hasNext=false;
+    $('status').textContent='Error: '+err.message;
+    render([],null);
+  }
 }
-function infoRow(parent,label,value){const line=put(parent,'div','','info-row');put(line,'span',label);put(line,'span',value)}
-function statBox(parent,label,score){const box=put(parent,'div','','stat');put(box,'small',label);put(box,'strong',fmt(score))}
+
+function infoRow(parent,label,value){
+  const line=put(parent,'div','','info-row');
+  put(line,'span',label);
+  put(line,'span',value);
+}
+
+function statBox(parent,label,score){
+  const box=put(parent,'div','','stat');
+  put(box,'small',label);
+  put(box,'strong',fmt(score));
+}
+
 async function showPlayer(player){
- selected=player;detailController?.abort();detailController=new AbortController();
- document.querySelectorAll('.player').forEach(el=>el.classList.toggle('active',el.querySelector('.name')?.textContent===player.name));
- const container=$('detailContent');container.replaceChildren();container.className='';
- put(container,'div',(player.name||'?').charAt(0).toUpperCase(),'avatar');
- put(container,'h2',player.name);
- const stats=put(container,'div','','stats');statBox(stats,scoreLabel()+' rank',player.rank);statBox(stats,scoreLabel(),player.score);
- const info=put(container,'div','','info');infoRow(info,'Player ID',player.id||'Unavailable');infoRow(info,'Selected season',season.value);
- if(!player.id){put(container,'p','Player ID unavailable.','error');return}
- const loading=put(container,'p','Loading player profile…','muted');
- try{
-  const res=await fetch('/api/player?'+new URLSearchParams({id:player.id}),{signal:detailController.signal});
-  const data=await res.json();if(!res.ok)throw Error(data.error||'Profile request failed');loading.remove();
-  const profile=data.profile;
-  const meta=typeof profile.metadata==='string'?JSON.parse(profile.metadata||'{}'):(profile.metadata??{});
-  container.querySelector('h2').textContent=profile.display_name||player.name;
-  infoRow(info,'Username',profile.username??'Unavailable');
-  infoRow(info,'Display name',profile.display_name??'Unavailable');
-  infoRow(info,'Online',profile.online===true?'Yes':profile.online===false?'No':'Unknown');
-  infoRow(info,'Social connections',profile.edge_count??'Unavailable');
-  if(profile.create_time)infoRow(info,'Account created',new Date(profile.create_time*1000).toLocaleDateString());
-  if(profile.lang_tag)infoRow(info,'Language',profile.lang_tag);
-  if(Array.isArray(meta.awards))infoRow(info,'Unlocked awards',meta.awards.length);
-  const more=put(container,'div','','info');
-  for(const [key,value] of Object.entries(meta)){
-   if(key==='awards'||value===null||typeof value==='object')continue;
-   infoRow(more,key.replace(/_/g,' '),String(value));
+  selected=player;
+
+  detailController?.abort();
+  detailController=new AbortController();
+
+  document.querySelectorAll('.player').forEach(el=>{
+    el.classList.toggle(
+      'active',
+      el.querySelector('.name')?.textContent===player.name
+    );
+  });
+
+  const container=$('detailContent');
+  container.replaceChildren();
+  container.className='';
+
+  put(
+    container,
+    'div',
+    (player.name||'?').charAt(0).toUpperCase(),
+    'avatar'
+  );
+
+  put(container,'h2',player.name);
+
+  const stats=put(container,'div','','stats');
+  statBox(stats,scoreLabel()+' rank',player.rank);
+  statBox(stats,scoreLabel(),player.score);
+
+  const info=put(container,'div','','info');
+  infoRow(info,'Player ID',player.id||'Unavailable');
+  infoRow(info,'Selected season',season.value);
+
+  if(!player.id){
+    put(container,'p','Player ID unavailable.','error');
+    return;
   }
-  if(Array.isArray(meta.awards)&&meta.awards.length){
-   put(container,'div','Unlocked awards','section-title');
-   const awards=put(container,'div','','info');
-   for(const award of meta.awards)infoRow(awards,'Award',String(award));
+
+  const loading=put(
+    container,
+    'p',
+    'Loading player profile…',
+    'muted'
+  );
+
+  try{
+    const res=await fetch(
+      '/api/player?'+new URLSearchParams({id:player.id}),
+      {signal:detailController.signal}
+    );
+
+    const data=await res.json();
+
+    if(!res.ok){
+      throw Error(data.error||'Profile request failed');
+    }
+
+    loading.remove();
+
+    const profile=data.profile;
+
+    const meta=typeof profile.metadata==='string'
+      ?JSON.parse(profile.metadata||'{}')
+      :(profile.metadata??{});
+
+    container.querySelector('h2').textContent=
+      profile.display_name||player.name;
+
+    infoRow(info,'Username',profile.username??'Unavailable');
+    infoRow(info,'Display name',profile.display_name??'Unavailable');
+
+    infoRow(
+      info,
+      'Online',
+      profile.online===true
+        ?'Yes'
+        :profile.online===false
+          ?'No'
+          :'Unknown'
+    );
+
+    infoRow(
+      info,
+      'Social connections',
+      profile.edge_count??'Unavailable'
+    );
+
+    if(profile.create_time){
+      infoRow(
+        info,
+        'Account created',
+        new Date(profile.create_time*1000).toLocaleDateString()
+      );
+    }
+
+    if(profile.lang_tag){
+      infoRow(info,'Language',profile.lang_tag);
+    }
+
+    // Show the total number of awards, not every award.
+    if(Array.isArray(meta.awards)){
+      infoRow(info,'Unlocked awards',meta.awards.length);
+    }
+
+    const more=put(container,'div','','info');
+
+    for(const [key,value] of Object.entries(meta)){
+      if(
+        key==='awards'||
+        value===null||
+        typeof value==='object'
+      ){
+        continue;
+      }
+
+      infoRow(
+        more,
+        key.replace(/_/g,' '),
+        String(value)
+      );
+    }
+
+  }catch(err){
+    if(err.name==='AbortError')return;
+
+    loading.remove();
+
+    put(
+      container,
+      'p',
+      'Profile unavailable: '+err.message,
+      'error'
+    );
   }
- }catch(err){if(err.name==='AbortError')return;loading.remove();put(container,'p','Profile unavailable: '+err.message,'error')}
 }
-function reset(){page=1;selected=null;detailController?.abort();$('detailContent').replaceChildren();$('detailContent').className='empty';$('detailContent').textContent='Select a player from the leaderboard to view their statistics.';load()}
-$('board').onchange=reset;season.onchange=reset;
-$('search').oninput=()=>{page=1;clearTimeout(timer);timer=setTimeout(load,350)};
+
+function reset(){
+  page=1;
+  selected=null;
+
+  detailController?.abort();
+
+  $('detailContent').replaceChildren();
+  $('detailContent').className='empty';
+  $('detailContent').textContent=
+    'Select a player from the leaderboard to view their statistics.';
+
+  load();
+}
+
+$('board').onchange=reset;
+season.onchange=reset;
+
+$('search').oninput=()=>{
+  page=1;
+  clearTimeout(timer);
+  timer=setTimeout(load,350);
+};
+
 $('refresh').onclick=load;
-$('prev').onclick=()=>{if(page>1){page--;load()}};
-$('next').onclick=()=>{if(hasNext){page++;load()}};
-$('pageInput').onkeydown=e=>{if(e.key!=='Enter')return;e.preventDefault();const value=Number(e.currentTarget.value);if(Number.isSafeInteger(value)&&value>=1&&value!==page){page=value;load()}else e.currentTarget.value=page;e.currentTarget.blur()};
+
+$('prev').onclick=()=>{
+  if(page>1){
+    page--;
+    load();
+  }
+};
+
+$('next').onclick=()=>{
+  if(hasNext){
+    page++;
+    load();
+  }
+};
+
+$('pageInput').onkeydown=e=>{
+  if(e.key!=='Enter')return;
+
+  e.preventDefault();
+
+  const value=Number(e.currentTarget.value);
+
+  if(
+    Number.isSafeInteger(value)&&
+    value>=1&&
+    value!==page
+  ){
+    page=value;
+    load();
+  }else{
+    e.currentTarget.value=page;
+  }
+
+  e.currentTarget.blur();
+};
+
 load();
-</script></body></html>
+</script>
+</body>
+</html>
