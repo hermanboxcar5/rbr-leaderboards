@@ -1,381 +1,84 @@
-
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RBR Leaderboard</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RBR Rankings</title>
 <style>
-:root{font-family:Inter,system-ui,sans-serif;color:#e8edff;background:#0a0d19}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(circle at 70% 0%,#24315a 0%,#0a0d19 42%);min-height:100vh}
-body.modal-open{overflow:hidden}
-.wrap{max-width:1050px;margin:auto;padding:54px 20px}
-.eyebrow{color:#9faeff;font-weight:700;letter-spacing:.2em;font-size:12px}
-h1{font-size:clamp(38px,6vw,66px);letter-spacing:-.055em;margin:12px 0}
-p{color:#aab3d0}
-.panel{margin-top:34px;background:#141a2ccc;border:1px solid #303b58;border-radius:22px;overflow:hidden;box-shadow:0 18px 65px #0005}
-.toolbar{display:flex;gap:12px;padding:22px;border-bottom:1px solid #303b58;flex-wrap:wrap}
-input,button,select{font:inherit;border-radius:11px;padding:13px 16px}
-select{background:#0d1324;border:1px solid #394464;color:white;cursor:pointer}
-input{flex:1;min-width:190px;background:#0d1324;border:1px solid #394464;color:white;outline:none}
-input:focus{border-color:#8298ff}
-button{cursor:pointer;border:1px solid #455378;background:#273456;color:white}
-button:hover:not(:disabled){background:#3b4e82}
-button:disabled{opacity:.35;cursor:not-allowed}
-.status{font-size:13px;color:#aeb9d6;padding:0 24px}
-.head,.player{display:grid;grid-template-columns:90px 1fr 140px;gap:15px;align-items:center;padding:17px 24px}
-.head{color:#8794b7;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-.player{border:0;border-top:1px solid #27324c;border-radius:0;width:100%;text-align:left;background:transparent;color:inherit}
-.player:hover,.player:focus-visible{background:#202a43;outline:none}
-.rank{font-weight:800;color:#a9b8f6}
-.name{font-weight:650;overflow-wrap:anywhere}
-.score{text-align:right;font-variant-numeric:tabular-nums;color:#dce5ff}
-.footer{padding:22px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #303b58}
-.pagination{display:flex;gap:8px;align-items:center}
-.pagination button{min-width:46px}
-.page-input{width:72px;min-width:0;flex:none;text-align:center;padding:13px 8px;font-variant-numeric:tabular-nums}
-.page-input::-webkit-inner-spin-button,.page-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.page-input{-moz-appearance:textfield;appearance:textfield}
-
-/* Player details modal */
-.modal-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:#030611d9;backdrop-filter:blur(9px)}
-.modal-overlay[hidden]{display:none}
-.modal{width:min(100%,520px);max-height:90vh;overflow:auto;background:#161d31;border:1px solid #435174;border-radius:24px;box-shadow:0 25px 100px #000a}
-.modal-top{display:flex;justify-content:space-between;align-items:flex-start;padding:26px 26px 0}
-.modal-heading{color:#91a3dc;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:750}
-.close{border:0;background:#293653;width:38px;height:38px;padding:0;border-radius:10px;font-size:24px;line-height:1}
-.avatar{width:70px;height:70px;border-radius:18px;background:linear-gradient(135deg,#526bd3,#8e63d6);display:grid;place-items:center;font-size:28px;font-weight:800;flex-shrink:0}
-.profile{display:flex;align-items:center;gap:17px;padding:20px 26px 26px;border-bottom:1px solid #303b58}
-.profile h2{font-size:25px;margin:0 0 5px;overflow-wrap:anywhere}
-.profile p{margin:0;font-size:13px}
-.stats{padding:24px 26px}
-.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#9aa9d2;margin:0 0 14px;font-weight:750}
-.stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.stat{background:#101729;border:1px solid #303b58;border-radius:15px;padding:17px;min-width:0}
-.stat-label{font-size:12px;color:#95a5cd;margin-bottom:9px}
-.stat-value{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.details{margin-top:22px}
-.detail-row{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #303b58;font-size:13px}
-.detail-row span:first-child{color:#98a7c9}
-.detail-row span:last-child{text-align:right;overflow-wrap:anywhere}
-.modal-foot{padding:0 26px 25px;color:#8190b5;font-size:12px}
-@media(max-width:550px){
-.wrap{padding:35px 12px}
-.head,.player{grid-template-columns:55px 1fr 90px;padding:15px 13px;gap:8px}
-.toolbar{padding:14px}
-.footer{padding:14px}
-.profile{padding:17px}
-.modal-top{padding:18px 18px 0}
-.stats{padding:18px}
-.modal-foot{padding:0 18px 20px}
-}
-</style>
-</head>
-<body>
-<main class="wrap">
-<div class="eyebrow">ROCKET BOT ROYALE · RANKINGS</div>
-<h1>Global leaderboard<span style="color:#869bff">.</span></h1>
-<p>Explore the competition, search the top 10,000 players, and browse rankings.</p>
-
-<section class="panel">
-<div class="toolbar">
-<select id="board" aria-label="Leaderboard">
-<option value="trophies">🏆 Trophies</option>
-<option value="points">⭐ Points</option>
-</select>
-<input id="search" placeholder="Search top 10,000 display names…" aria-label="Search display names">
-<button id="refresh">Refresh</button>
-</div>
-
-<p id="status" class="status">Loading rankings…</p>
-
-<div class="head">
-<span>Rank</span>
-<span>Player</span>
-<span id="scoreHeader" style="text-align:right">Trophies</span>
-</div>
-
-<div id="rows"></div>
-
-<div class="footer">
-<span id="page" class="muted">Page 1</span>
-<div class="pagination">
-<button id="prev" aria-label="Previous page">&lt;</button>
-<input id="pageInput" class="page-input" type="number" min="1" step="1" value="1" aria-label="Page number">
-<button id="next" aria-label="Next page">&gt;</button>
-</div>
-</div>
-</section>
-</main>
-
-<!-- Player details -->
-<div id="modalOverlay" class="modal-overlay" hidden>
-<section class="modal" role="dialog" aria-modal="true" aria-labelledby="profileName">
-<div class="modal-top">
-<div class="modal-heading">Player statistics</div>
-<button id="closeModal" class="close" aria-label="Close player details">&times;</button>
-</div>
-
-<div class="profile">
-<div id="profileAvatar" class="avatar">?</div>
-<div>
-<h2 id="profileName">Player</h2>
-<p id="profileSubtitle">Rocket Bot Royale</p>
-</div>
-</div>
-
-<div class="stats">
-<div class="section-title">Leaderboard performance</div>
-<div class="stat-grid">
-<div class="stat">
-<div class="stat-label">Global rank</div>
-<div id="profileRank" class="stat-value">—</div>
-</div>
-<div class="stat">
-<div id="profileScoreLabel" class="stat-label">Trophies</div>
-<div id="profileScore" class="stat-value">—</div>
-</div>
-</div>
-
-<div class="details">
-<div class="section-title">Player information</div>
-<div class="detail-row">
-<span>Display name</span>
-<span id="detailName">—</span>
-</div>
-<div class="detail-row">
-<span>Player ID</span>
-<span id="detailId">—</span>
-</div>
-<div class="detail-row">
-<span>Leaderboard</span>
-<span id="detailBoard">—</span>
-</div>
-<div class="detail-row">
-<span>Season</span>
-<span>60</span>
-</div>
-</div>
-</div>
-
-<div class="modal-foot">
-Statistics reflect the selected leaderboard entry.
-</div>
-</section>
-</div>
-
+:root{font-family:Inter,system-ui,sans-serif;color:#e8edff;background:#0a0d19}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 70% 0%,#24315a 0%,#0a0d19 47%)}
+.wrap{max-width:1400px;margin:auto;padding:44px 20px}.eyebrow{font-size:12px;letter-spacing:.18em;color:#9faeff;font-weight:800}h1{font-size:clamp(36px,5vw,60px);letter-spacing:-.055em;margin:10px 0}p{color:#aab3d0}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px;align-items:start;margin-top:28px}
+.panel{background:#141a2cee;border:1px solid #303b58;border-radius:20px;overflow:hidden;box-shadow:0 18px 65px #0005}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;padding:18px;border-bottom:1px solid #303b58}
+input,button,select{font:inherit;border-radius:10px;padding:11px 13px}input,select{background:#0d1324;border:1px solid #394464;color:white;outline:none}input:focus,select:focus{border-color:#8b9ef5}select{cursor:pointer}#search{flex:1;min-width:185px}button{background:#273456;border:1px solid #455378;color:white;cursor:pointer}button:hover:not(:disabled){background:#394c7e}button:disabled{opacity:.35;cursor:not-allowed}
+.status{font-size:13px;color:#aeb9d6;padding:0 20px}.head,.player{display:grid;grid-template-columns:70px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:14px 20px}.head{text-transform:uppercase;font-size:11px;letter-spacing:.12em;color:#8794b7}.player{width:100%;border:0;border-top:1px solid #27324c;border-radius:0;text-align:left;background:transparent;color:inherit}.player:hover,.player.active{background:#263554}.rank{font-weight:800;color:#a9b8f6}.name{font-weight:650;overflow-wrap:anywhere}.score{text-align:right;font-variant-numeric:tabular-nums}
+.footer{padding:18px 20px;display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:1px solid #303b58}.muted{font-size:12px;color:#99a9c8}.pagination{display:flex;align-items:center;gap:7px}.pagination button{min-width:42px}.page-input{width:68px;min-width:0;text-align:center;padding:11px 7px;appearance:textfield}.page-input::-webkit-inner-spin-button,.page-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.details{position:sticky;top:18px;padding:23px;min-height:295px}.details h2{font-size:22px;letter-spacing:-.03em;overflow-wrap:anywhere;margin:8px 0}.section-title{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#91a3d6;font-weight:800}.avatar{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#5675d9,#9568ca);display:grid;place-items:center;font-weight:800;font-size:24px;margin:17px 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.stat{background:#0e1527;border:1px solid #303b58;border-radius:12px;padding:14px;min-width:0}.stat small{display:block;color:#9aaad0;margin-bottom:8px}.stat strong{font-size:21px;overflow-wrap:anywhere}.info{margin-top:22px}.info-row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #303b58;font-size:12px}.info-row span:first-child{color:#92a3cb}.info-row span:last-child{text-align:right;overflow-wrap:anywhere}.empty{padding:30px 0;color:#91a3c6}.error{color:#ffb3b3;font-size:12px}
+@media(max-width:850px){.layout{grid-template-columns:minmax(0,1fr)}.details{position:static;min-height:150px}}
+@media(max-width:500px){.wrap{padding:26px 10px}.head,.player{grid-template-columns:48px minmax(0,1fr) 83px;gap:8px;padding:14px 12px}.toolbar{padding:12px}.footer{padding:12px}}
+</style></head><body><main class="wrap">
+<div class="eyebrow">ROCKET BOT ROYALE · RANKINGS</div><h1>Global leaderboard<span style="color:#869bff">.</span></h1><p>Browse 100 players per page, or search the top 10,000 by display name.</p>
+<div class="layout"><section class="panel"><div class="toolbar"><select id="board" aria-label="Leaderboard"><option value="trophies">🏆 Trophies</option><option value="points">⭐ Points</option></select><select id="season" aria-label="Season"></select><input id="search" placeholder="Search player names…" aria-label="Search players"><button id="refresh">Refresh</button></div>
+<p id="status" class="status">Loading…</p><div class="head"><span>Rank</span><span>Player</span><span id="scoreHeader" style="text-align:right">Trophies</span></div><div id="rows"></div>
+<div class="footer"><span id="page" class="muted">Page 1</span><div class="pagination"><button id="prev" aria-label="Previous page">&lt;</button><input id="pageInput" class="page-input" type="number" min="1" step="1" value="1" aria-label="Page number"><button id="next" aria-label="Next page">&gt;</button></div></div></section>
+<aside class="panel details" id="details" aria-label="Player statistics" aria-live="polite"><div class="section-title">Player details</div><div id="detailContent" class="empty">Select a player from the leaderboard to view their statistics.</div></aside></div></main>
 <script>
-let page=1;
-let hasNext=false;
-let controller=null;
-let timer=null;
-let lastFocused=null;
-
 const $=id=>document.getElementById(id);
-
-function boardLabel(){
-  return $('board').value==='points'?'Points':'Trophies';
-}
-
-function formatNumber(value){
-  const number=Number(value);
-  return Number.isFinite(number)
-    ?number.toLocaleString()
-    :'—';
-}
-
-function openPlayer(player){
-  lastFocused=document.activeElement;
-
-  const name=String(player.name??'Unknown player');
-  const id=String(player.id??'');
-  const board=boardLabel();
-
-  $('profileName').textContent=name;
-  $('profileAvatar').textContent=name.charAt(0).toUpperCase()||'?';
-  $('profileSubtitle').textContent=board+' leaderboard · Season 60';
-  $('profileRank').textContent=Number.isFinite(Number(player.rank))
-    ?'#'+formatNumber(player.rank)
-    :'—';
-  $('profileScoreLabel').textContent=board;
-  $('profileScore').textContent=formatNumber(player.score);
-
-  $('detailName').textContent=name;
-  $('detailId').textContent=id||'Unavailable';
-  $('detailBoard').textContent=board;
-
-  $('modalOverlay').hidden=false;
-  document.body.classList.add('modal-open');
-  $('closeModal').focus();
-}
-
-function closePlayer(){
-  $('modalOverlay').hidden=true;
-  document.body.classList.remove('modal-open');
-  lastFocused?.focus();
-}
-
+const fmt=value=>value==null||!Number.isFinite(Number(value))?'—':Number(value).toLocaleString();
+const scoreLabel=()=> $('board').value==='points'?'Points':'Trophies';
+const season=$('season');
+for(let s=60;s>=0;s--){const opt=document.createElement('option');opt.value=String(s);opt.textContent='Season '+s;season.append(opt)}
+season.value='60';
+let page=1,hasNext=false,controller=null,detailController=null,timer=null,selected=null;
+function put(parent,tag,content,cls){const node=document.createElement(tag);node.textContent=String(content);if(cls)node.className=cls;parent.append(node);return node}
 function render(records,total){
-  $('rows').replaceChildren();
-  $('scoreHeader').textContent=boardLabel();
-
-  for(const player of records){
-    const button=document.createElement('button');
-    button.type='button';
-    button.className='player';
-    button.setAttribute('aria-label','View statistics for '+player.name);
-
-    const values=[
-      ['rank','#'+formatNumber(player.rank)],
-      ['name',String(player.name??'Unknown player')],
-      ['score',formatNumber(player.score)]
-    ];
-
-    for(const [cls,value] of values){
-      const span=document.createElement('span');
-      span.className=cls;
-      span.textContent=value;
-      button.append(span);
-    }
-
-    button.addEventListener('click',()=>openPlayer(player));
-    $('rows').append(button);
-  }
-
-  if(!records.length){
-    const p=document.createElement('p');
-    p.className='status';
-    p.textContent='No players found.';
-    $('rows').append(p);
-  }
-
-  $('page').textContent='Page '+page+
-    (total===null
-      ?' · ranks '+((page-1)*100+1)+'–'+(page*100)
-      :' · '+total.toLocaleString()+' matches');
-
-  $('pageInput').value=page;
-  $('prev').disabled=page<=1;
-  $('next').disabled=!hasNext;
+ $('rows').replaceChildren();$('scoreHeader').textContent=scoreLabel();
+ for(const player of records){
+  const row=document.createElement('button');row.type='button';row.className='player'+(selected?.id&&player.id===selected.id?' active':'');
+  put(row,'span','#'+fmt(player.rank),'rank');put(row,'span',player.name,'name');put(row,'span',fmt(player.score),'score');
+  row.onclick=()=>showPlayer(player);$('rows').append(row);
+ }
+ if(!records.length)put($('rows'),'p','No players found.','status');
+ $('page').textContent='Page '+page+(total===null?' · ranks '+((page-1)*100+1)+'–'+page*100:' · '+fmt(total)+' matches');
+ $('pageInput').value=page;$('prev').disabled=page<=1;$('next').disabled=!hasNext;
 }
-
 async function load(){
-  if(controller)controller.abort();
-  controller=new AbortController();
-  const signal=controller.signal;
-
-  $('pageInput').value=page;
-  $('scoreHeader').textContent=boardLabel();
-
-  $('status').textContent='Loading '+
-    ($('search').value.trim()?'search results':'page '+page)+'…';
-
-  $('prev').disabled=true;
-  $('next').disabled=true;
-
-  try{
-    const params=new URLSearchParams({
-      board:$('board').value,
-      page:String(page),
-      search:$('search').value.trim()
-    });
-
-    const response=await fetch('/api/leaderboard?'+params,{signal});
-    const data=await response.json();
-
-    if(!response.ok){
-      throw new Error(data.error||'Unable to load leaderboard');
-    }
-
-    hasNext=Boolean(data.hasNext);
-
-    $('status').textContent=data.searchScope
-      ?'Searching top 10,000 players · 100 results per page'
-      :'100 players per page · Click a player to view stats';
-
-    render(data.records??[],data.total??null);
-  }catch(error){
-    if(error.name==='AbortError')return;
-
-    hasNext=false;
-    $('status').textContent='Error: '+error.message;
-    render([],null);
-  }
+ controller?.abort();controller=new AbortController();const signal=controller.signal;
+ $('status').textContent='Loading '+($('search').value.trim()?'search results':'page '+page)+'…';$('prev').disabled=$('next').disabled=true;
+ try{
+  const qs=new URLSearchParams({board:$('board').value,season:season.value,page:String(page),search:$('search').value.trim()});
+  const res=await fetch('/api/leaderboard?'+qs,{signal});const data=await res.json();if(!res.ok)throw Error(data.error||'Leaderboard failed');
+  hasNext=Boolean(data.hasNext);$('status').textContent=data.searchScope?'Searching top 10,000 players · 100 results per page':'100 players per page · Select a player for stats';render(data.records||[],data.total??null);
+ }catch(err){if(err.name==='AbortError')return;hasNext=false;$('status').textContent='Error: '+err.message;render([],null)}
 }
-
-function goToPage(){
-  const input=$('pageInput');
-  const value=Number(input.value);
-
-  if(!Number.isSafeInteger(value)||value<1){
-    input.value=page;
-    return;
+function infoRow(parent,label,value){const line=put(parent,'div','','info-row');put(line,'span',label);put(line,'span',value)}
+function statBox(parent,label,score){const box=put(parent,'div','','stat');put(box,'small',label);put(box,'strong',fmt(score))}
+async function showPlayer(player){
+ selected=player;detailController?.abort();detailController=new AbortController();
+ document.querySelectorAll('.player').forEach(el=>el.classList.toggle('active',el.querySelector('.name')?.textContent===player.name));
+ const container=$('detailContent');container.replaceChildren();container.className='';
+ put(container,'div',(player.name||'?').charAt(0).toUpperCase(),'avatar');put(container,'h2',player.name);
+ put(container,'p','Loading detailed stats for season '+season.value+'…','muted');
+ const stats=put(container,'div','','stats');statBox(stats,scoreLabel()+' · rank',player.rank);statBox(stats,scoreLabel(),player.score);
+ const info=put(container,'div','','info');infoRow(info,'Player ID',player.id||'Unavailable');infoRow(info,'Season',season.value);
+ if(!player.id){put(container,'p','This leaderboard record has no player ID, so additional statistics are unavailable.','error');return}
+ try{
+  const res=await fetch('/api/player?'+new URLSearchParams({id:player.id,season:season.value}),{signal:detailController.signal});
+  const data=await res.json();if(!res.ok)throw Error(data.error||'Stats request failed');
+  stats.replaceChildren();
+  for(const [label,key] of [['Trophies','trophies'],['Points','points']]){
+   statBox(stats,label,data.stats?.[key]?.score??(key===$('board').value?player.score:null));
+   statBox(stats,label+' rank',data.stats?.[key]?.rank??(key===$('board').value?player.rank:null));
   }
-
-  if(value!==page){
-    page=value;
-    load();
-  }
+  const old=container.querySelector('.muted');old?.remove();
+  if(data.errors?.length)put(container,'p','Some player stats could not load: '+data.errors.join('; '),'error');
+  if(!data.stats?.trophies&&!data.stats?.points)put(container,'p','No additional leaderboard position data was returned for this player.','muted');
+ }catch(err){if(err.name==='AbortError')return;container.querySelector('.muted')?.remove();put(container,'p','Detailed stats unavailable: '+err.message,'error')}
 }
-
-$('board').addEventListener('change',()=>{
-  page=1;
-  load();
-});
-
-$('search').addEventListener('input',()=>{
-  page=1;
-  clearTimeout(timer);
-  timer=setTimeout(load,350);
-});
-
+function reset(){page=1;selected=null;detailController?.abort();$('detailContent').replaceChildren();$('detailContent').className='empty';$('detailContent').textContent='Select a player from the leaderboard to view their statistics.';load()}
+$('board').onchange=reset;season.onchange=reset;
+$('search').oninput=()=>{page=1;clearTimeout(timer);timer=setTimeout(load,350)};
 $('refresh').onclick=load;
-
-$('prev').onclick=()=>{
-  if(page>1){
-    page--;
-    load();
-  }
-};
-
-$('next').onclick=()=>{
-  if(hasNext){
-    page++;
-    load();
-  }
-};
-
-$('pageInput').addEventListener('keydown',event=>{
-  if(event.key==='Enter'){
-    event.preventDefault();
-    goToPage();
-    event.target.blur();
-  }
-});
-
-$('closeModal').addEventListener('click',closePlayer);
-
-$('modalOverlay').addEventListener('click',event=>{
-  if(event.target===$('modalOverlay')){
-    closePlayer();
-  }
-});
-
-document.addEventListener('keydown',event=>{
-  if($('modalOverlay').hidden)return;
-
-  if(event.key==='Escape'){
-    closePlayer();
-  }
-
-  if(event.key==='Tab'){
-    event.preventDefault();
-    $('closeModal').focus();
-  }
-});
-
+$('prev').onclick=()=>{if(page>1){page--;load()}};
+$('next').onclick=()=>{if(hasNext){page++;load()}};
+$('pageInput').onkeydown=e=>{if(e.key!=='Enter')return;e.preventDefault();const value=Number(e.currentTarget.value);if(Number.isSafeInteger(value)&&value>=1&&value!==page){page=value;load()}else e.currentTarget.value=page;e.currentTarget.blur()};
 load();
-</script>
-</body>
-</html>
+</script></body></html>
