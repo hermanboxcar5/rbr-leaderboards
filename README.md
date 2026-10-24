@@ -1,15 +1,17 @@
 # RBR Leaderboard — Vercel
 
+A dark-themed Rocket Bot Royale leaderboard built with `@jellycade/script`.
+
 ## Deploy
 
-1. Upload this project to GitHub and import it into Vercel (Framework Preset: Other).
-2. Set the Vercel environment variable `RBR_TROPHIES_ID` and `RBR_POINTS_ID` to the respective RBR leaderboard IDs. Optionally set `RBR_SEASON`.
-3. Deploy. The frontend is static and the backend runs as `/api/leaderboard` serverless function.
+Import this directory into Vercel (Framework Preset: Other). No environment variables required. Run `npm install` and `npx vercel dev` locally.
 
-## Important adapter notes
+## API
 
-The exact `@jellycade/script` guest auth and leaderboard API signatures were not verified. Inspect the installed library and update `createGuest()` and `fetchPage()` in `api/leaderboard.js` if needed. The UI and serverless routing are complete, but API integration is not guaranteed until those signatures are matched.
+- Guest authentication: `new jelly.RBRClient('newguest')`
+- Range: `getLeaderboard(id, '60', 'range', {from, to})`, where `from` is inclusive and `to` is exclusive.
+- Leaderboards: `tankkings_trophies` and `tankkings_points`.
+- Page size: 100.
+- Search loads up to the top 10,000 players for the selected leaderboard and filters display names on the server. Results are paginated by 100.
 
-Search currently filters **only the loaded page**, not every player globally. To support global display-name search, wire a server-side player-search API into the handler. Pagination now passes inclusive `from`/`to` ranking positions (1–50, 51–100, etc.) to the adapter. Confirm the method signature and whether its range endpoints are inclusive in your installed JellyScript version.
-
-Run locally with `npm install` and `npx vercel dev`.
+Search index caching is in-memory per serverless instance for 60 seconds; cold instances may need to refetch up to 10 batches, which can be slow or hit function timeouts. For reliable production-scale search, persist the top 10k in a database and refresh it on a schedule.
