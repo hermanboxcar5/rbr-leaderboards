@@ -55,23 +55,36 @@ async function showPlayer(player){
  selected=player;detailController?.abort();detailController=new AbortController();
  document.querySelectorAll('.player').forEach(el=>el.classList.toggle('active',el.querySelector('.name')?.textContent===player.name));
  const container=$('detailContent');container.replaceChildren();container.className='';
- put(container,'div',(player.name||'?').charAt(0).toUpperCase(),'avatar');put(container,'h2',player.name);
- put(container,'p','Loading detailed stats for season '+season.value+'…','muted');
- const stats=put(container,'div','','stats');statBox(stats,scoreLabel()+' · rank',player.rank);statBox(stats,scoreLabel(),player.score);
- const info=put(container,'div','','info');infoRow(info,'Player ID',player.id||'Unavailable');infoRow(info,'Season',season.value);
- if(!player.id){put(container,'p','This leaderboard record has no player ID, so additional statistics are unavailable.','error');return}
+ put(container,'div',(player.name||'?').charAt(0).toUpperCase(),'avatar');
+ put(container,'h2',player.name);
+ const stats=put(container,'div','','stats');statBox(stats,scoreLabel()+' rank',player.rank);statBox(stats,scoreLabel(),player.score);
+ const info=put(container,'div','','info');infoRow(info,'Player ID',player.id||'Unavailable');infoRow(info,'Selected season',season.value);
+ if(!player.id){put(container,'p','Player ID unavailable.','error');return}
+ const loading=put(container,'p','Loading player profile…','muted');
  try{
-  const res=await fetch('/api/player?'+new URLSearchParams({id:player.id,season:season.value}),{signal:detailController.signal});
-  const data=await res.json();if(!res.ok)throw Error(data.error||'Stats request failed');
-  stats.replaceChildren();
-  for(const [label,key] of [['Trophies','trophies'],['Points','points']]){
-   statBox(stats,label,data.stats?.[key]?.score??(key===$('board').value?player.score:null));
-   statBox(stats,label+' rank',data.stats?.[key]?.rank??(key===$('board').value?player.rank:null));
+  const res=await fetch('/api/player?'+new URLSearchParams({id:player.id}),{signal:detailController.signal});
+  const data=await res.json();if(!res.ok)throw Error(data.error||'Profile request failed');loading.remove();
+  const profile=data.profile;
+  const meta=typeof profile.metadata==='string'?JSON.parse(profile.metadata||'{}'):(profile.metadata??{});
+  container.querySelector('h2').textContent=profile.display_name||player.name;
+  infoRow(info,'Username',profile.username??'Unavailable');
+  infoRow(info,'Display name',profile.display_name??'Unavailable');
+  infoRow(info,'Online',profile.online===true?'Yes':profile.online===false?'No':'Unknown');
+  infoRow(info,'Social connections',profile.edge_count??'Unavailable');
+  if(profile.create_time)infoRow(info,'Account created',new Date(profile.create_time*1000).toLocaleDateString());
+  if(profile.lang_tag)infoRow(info,'Language',profile.lang_tag);
+  if(Array.isArray(meta.awards))infoRow(info,'Unlocked awards',meta.awards.length);
+  const more=put(container,'div','','info');
+  for(const [key,value] of Object.entries(meta)){
+   if(key==='awards'||value===null||typeof value==='object')continue;
+   infoRow(more,key.replace(/_/g,' '),String(value));
   }
-  const old=container.querySelector('.muted');old?.remove();
-  if(data.errors?.length)put(container,'p','Some player stats could not load: '+data.errors.join('; '),'error');
-  if(!data.stats?.trophies&&!data.stats?.points)put(container,'p','No additional leaderboard position data was returned for this player.','muted');
- }catch(err){if(err.name==='AbortError')return;container.querySelector('.muted')?.remove();put(container,'p','Detailed stats unavailable: '+err.message,'error')}
+  if(Array.isArray(meta.awards)&&meta.awards.length){
+   put(container,'div','Unlocked awards','section-title');
+   const awards=put(container,'div','','info');
+   for(const award of meta.awards)infoRow(awards,'Award',String(award));
+  }
+ }catch(err){if(err.name==='AbortError')return;loading.remove();put(container,'p','Profile unavailable: '+err.message,'error')}
 }
 function reset(){page=1;selected=null;detailController?.abort();$('detailContent').replaceChildren();$('detailContent').className='empty';$('detailContent').textContent='Select a player from the leaderboard to view their statistics.';load()}
 $('board').onchange=reset;season.onchange=reset;

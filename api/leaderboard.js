@@ -21,7 +21,7 @@ async function range(client, board, season, from, to) {
     id: String(r.owner_id ?? r.user_id ?? ''),
     name: String(r.username ?? r.display_name ?? r.metadata?.display_name ?? 'Unknown player'),
     rank: Number(r.rank ?? r.position ?? from + i),
-    score: Number(r.num_score ?? r.score ?? 0)
+    score: Number(r.score ?? 0)
   }));
 }
 
