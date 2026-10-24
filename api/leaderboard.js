@@ -1,5 +1,7 @@
 import * as JellyModule from '@jellycade/script';
 
+const SEASON = 60
+
 // Update these three adapter functions if your installed JellyScript version
 // exposes a different constructor or leaderboard method signature.
 async function createGuest() {
@@ -34,8 +36,8 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const board = String(req.query.board ?? 'trophies').toLowerCase();
   if (!['trophies', 'points'].includes(board)) return res.status(400).json({ error: 'Invalid leaderboard' });
-  const leaderboard = board === 'trophies' ? process.env.RBR_TROPHIES_ID : process.env.RBR_POINTS_ID;
-  const season = String(req.query.season ?? process.env.RBR_SEASON ?? '').trim();
+  const leaderboard = board === 'trophies' ? "tankkings_trophies" : "tankkings_points";
+  const season = String(req.query.season ?? SEASON ?? '').trim();
   const from = Math.max(1, Math.min(500000, Number.parseInt(req.query.from, 10) || 1));
   const to = Math.min(500049, from + 49);
   const search = String(req.query.search ?? '').trim().toLowerCase().slice(0, 80);
