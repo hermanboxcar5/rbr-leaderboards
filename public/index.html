@@ -9,6 +9,7 @@
 :root{font-family:Inter,system-ui,sans-serif;color:#e8edff;background:#0a0d19}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at 70% 0%,#24315a 0%,#0a0d19 42%);min-height:100vh}
+body.modal-open{overflow:hidden}
 .wrap{max-width:1050px;margin:auto;padding:54px 20px}
 .eyebrow{color:#9faeff;font-weight:700;letter-spacing:.2em;font-size:12px}
 h1{font-size:clamp(38px,6vw,66px);letter-spacing:-.055em;margin:12px 0}
@@ -25,8 +26,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .status{font-size:13px;color:#aeb9d6;padding:0 24px}
 .head,.player{display:grid;grid-template-columns:90px 1fr 140px;gap:15px;align-items:center;padding:17px 24px}
 .head{color:#8794b7;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-.player{border-top:1px solid #27324c}
-.player:hover{background:#202a43}
+.player{border:0;border-top:1px solid #27324c;border-radius:0;width:100%;text-align:left;background:transparent;color:inherit}
+.player:hover,.player:focus-visible{background:#202a43;outline:none}
 .rank{font-weight:800;color:#a9b8f6}
 .name{font-weight:650;overflow-wrap:anywhere}
 .score{text-align:right;font-variant-numeric:tabular-nums;color:#dce5ff}
@@ -36,12 +37,38 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .page-input{width:72px;min-width:0;flex:none;text-align:center;padding:13px 8px;font-variant-numeric:tabular-nums}
 .page-input::-webkit-inner-spin-button,.page-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .page-input{-moz-appearance:textfield;appearance:textfield}
-.muted{color:#9ba9c8;font-size:13px}
+
+/* Player details modal */
+.modal-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:#030611d9;backdrop-filter:blur(9px)}
+.modal-overlay[hidden]{display:none}
+.modal{width:min(100%,520px);max-height:90vh;overflow:auto;background:#161d31;border:1px solid #435174;border-radius:24px;box-shadow:0 25px 100px #000a}
+.modal-top{display:flex;justify-content:space-between;align-items:flex-start;padding:26px 26px 0}
+.modal-heading{color:#91a3dc;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:750}
+.close{border:0;background:#293653;width:38px;height:38px;padding:0;border-radius:10px;font-size:24px;line-height:1}
+.avatar{width:70px;height:70px;border-radius:18px;background:linear-gradient(135deg,#526bd3,#8e63d6);display:grid;place-items:center;font-size:28px;font-weight:800;flex-shrink:0}
+.profile{display:flex;align-items:center;gap:17px;padding:20px 26px 26px;border-bottom:1px solid #303b58}
+.profile h2{font-size:25px;margin:0 0 5px;overflow-wrap:anywhere}
+.profile p{margin:0;font-size:13px}
+.stats{padding:24px 26px}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#9aa9d2;margin:0 0 14px;font-weight:750}
+.stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.stat{background:#101729;border:1px solid #303b58;border-radius:15px;padding:17px;min-width:0}
+.stat-label{font-size:12px;color:#95a5cd;margin-bottom:9px}
+.stat-value{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.details{margin-top:22px}
+.detail-row{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #303b58;font-size:13px}
+.detail-row span:first-child{color:#98a7c9}
+.detail-row span:last-child{text-align:right;overflow-wrap:anywhere}
+.modal-foot{padding:0 26px 25px;color:#8190b5;font-size:12px}
 @media(max-width:550px){
 .wrap{padding:35px 12px}
 .head,.player{grid-template-columns:55px 1fr 90px;padding:15px 13px;gap:8px}
 .toolbar{padding:14px}
 .footer{padding:14px}
+.profile{padding:17px}
+.modal-top{padding:18px 18px 0}
+.stats{padding:18px}
+.modal-foot{padding:0 18px 20px}
 }
 </style>
 </head>
@@ -50,6 +77,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div class="eyebrow">ROCKET BOT ROYALE · RANKINGS</div>
 <h1>Global leaderboard<span style="color:#869bff">.</span></h1>
 <p>Explore the competition, search the top 10,000 players, and browse rankings.</p>
+
 <section class="panel">
 <div class="toolbar">
 <select id="board" aria-label="Leaderboard">
@@ -59,13 +87,17 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <input id="search" placeholder="Search top 10,000 display names…" aria-label="Search display names">
 <button id="refresh">Refresh</button>
 </div>
+
 <p id="status" class="status">Loading rankings…</p>
+
 <div class="head">
 <span>Rank</span>
 <span>Player</span>
-<span style="text-align:right">Score</span>
+<span id="scoreHeader" style="text-align:right">Trophies</span>
 </div>
+
 <div id="rows"></div>
+
 <div class="footer">
 <span id="page" class="muted">Page 1</span>
 <div class="pagination">
@@ -76,37 +108,153 @@ button:disabled{opacity:.35;cursor:not-allowed}
 </div>
 </section>
 </main>
+
+<!-- Player details -->
+<div id="modalOverlay" class="modal-overlay" hidden>
+<section class="modal" role="dialog" aria-modal="true" aria-labelledby="profileName">
+<div class="modal-top">
+<div class="modal-heading">Player statistics</div>
+<button id="closeModal" class="close" aria-label="Close player details">&times;</button>
+</div>
+
+<div class="profile">
+<div id="profileAvatar" class="avatar">?</div>
+<div>
+<h2 id="profileName">Player</h2>
+<p id="profileSubtitle">Rocket Bot Royale</p>
+</div>
+</div>
+
+<div class="stats">
+<div class="section-title">Leaderboard performance</div>
+<div class="stat-grid">
+<div class="stat">
+<div class="stat-label">Global rank</div>
+<div id="profileRank" class="stat-value">—</div>
+</div>
+<div class="stat">
+<div id="profileScoreLabel" class="stat-label">Trophies</div>
+<div id="profileScore" class="stat-value">—</div>
+</div>
+</div>
+
+<div class="details">
+<div class="section-title">Player information</div>
+<div class="detail-row">
+<span>Display name</span>
+<span id="detailName">—</span>
+</div>
+<div class="detail-row">
+<span>Player ID</span>
+<span id="detailId">—</span>
+</div>
+<div class="detail-row">
+<span>Leaderboard</span>
+<span id="detailBoard">—</span>
+</div>
+<div class="detail-row">
+<span>Season</span>
+<span>60</span>
+</div>
+</div>
+</div>
+
+<div class="modal-foot">
+Statistics reflect the selected leaderboard entry.
+</div>
+</section>
+</div>
+
 <script>
-let page=1, hasNext=false, controller=null, timer=null;
+let page=1;
+let hasNext=false;
+let controller=null;
+let timer=null;
+let lastFocused=null;
+
 const $=id=>document.getElementById(id);
+
+function boardLabel(){
+  return $('board').value==='points'?'Points':'Trophies';
+}
+
+function formatNumber(value){
+  const number=Number(value);
+  return Number.isFinite(number)
+    ?number.toLocaleString()
+    :'—';
+}
+
+function openPlayer(player){
+  lastFocused=document.activeElement;
+
+  const name=String(player.name??'Unknown player');
+  const id=String(player.id??'');
+  const board=boardLabel();
+
+  $('profileName').textContent=name;
+  $('profileAvatar').textContent=name.charAt(0).toUpperCase()||'?';
+  $('profileSubtitle').textContent=board+' leaderboard · Season 60';
+  $('profileRank').textContent=Number.isFinite(Number(player.rank))
+    ?'#'+formatNumber(player.rank)
+    :'—';
+  $('profileScoreLabel').textContent=board;
+  $('profileScore').textContent=formatNumber(player.score);
+
+  $('detailName').textContent=name;
+  $('detailId').textContent=id||'Unavailable';
+  $('detailBoard').textContent=board;
+
+  $('modalOverlay').hidden=false;
+  document.body.classList.add('modal-open');
+  $('closeModal').focus();
+}
+
+function closePlayer(){
+  $('modalOverlay').hidden=true;
+  document.body.classList.remove('modal-open');
+  lastFocused?.focus();
+}
 
 function render(records,total){
   $('rows').replaceChildren();
-  for(const r of records){
-    const div=document.createElement('div');
-    div.className='player';
-    for(const [cls,value] of [
-      ['rank','#'+r.rank],
-      ['name',r.name],
-      ['score',Number(r.score).toLocaleString()]
-    ]){
+  $('scoreHeader').textContent=boardLabel();
+
+  for(const player of records){
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='player';
+    button.setAttribute('aria-label','View statistics for '+player.name);
+
+    const values=[
+      ['rank','#'+formatNumber(player.rank)],
+      ['name',String(player.name??'Unknown player')],
+      ['score',formatNumber(player.score)]
+    ];
+
+    for(const [cls,value] of values){
       const span=document.createElement('span');
       span.className=cls;
       span.textContent=value;
-      div.append(span);
+      button.append(span);
     }
-    $('rows').append(div);
+
+    button.addEventListener('click',()=>openPlayer(player));
+    $('rows').append(button);
   }
+
   if(!records.length){
     const p=document.createElement('p');
     p.className='status';
     p.textContent='No players found.';
     $('rows').append(p);
   }
+
   $('page').textContent='Page '+page+
     (total===null
       ?' · ranks '+((page-1)*100+1)+'–'+(page*100)
       :' · '+total.toLocaleString()+' matches');
+
   $('pageInput').value=page;
   $('prev').disabled=page<=1;
   $('next').disabled=!hasNext;
@@ -116,26 +264,40 @@ async function load(){
   if(controller)controller.abort();
   controller=new AbortController();
   const signal=controller.signal;
+
   $('pageInput').value=page;
+  $('scoreHeader').textContent=boardLabel();
+
   $('status').textContent='Loading '+
     ($('search').value.trim()?'search results':'page '+page)+'…';
-  $('prev').disabled=$('next').disabled=true;
+
+  $('prev').disabled=true;
+  $('next').disabled=true;
+
   try{
     const params=new URLSearchParams({
       board:$('board').value,
       page:String(page),
       search:$('search').value.trim()
     });
+
     const response=await fetch('/api/leaderboard?'+params,{signal});
     const data=await response.json();
-    if(!response.ok)throw new Error(data.error||'Unable to load leaderboard');
-    hasNext=data.hasNext;
+
+    if(!response.ok){
+      throw new Error(data.error||'Unable to load leaderboard');
+    }
+
+    hasNext=Boolean(data.hasNext);
+
     $('status').textContent=data.searchScope
       ?'Searching top 10,000 players · 100 results per page'
-      :'100 players per page';
-    render(data.records,data.total);
+      :'100 players per page · Click a player to view stats';
+
+    render(data.records??[],data.total??null);
   }catch(error){
     if(error.name==='AbortError')return;
+
     hasNext=false;
     $('status').textContent='Error: '+error.message;
     render([],null);
@@ -145,10 +307,12 @@ async function load(){
 function goToPage(){
   const input=$('pageInput');
   const value=Number(input.value);
+
   if(!Number.isSafeInteger(value)||value<1){
     input.value=page;
     return;
   }
+
   if(value!==page){
     page=value;
     load();
@@ -159,24 +323,29 @@ $('board').addEventListener('change',()=>{
   page=1;
   load();
 });
+
 $('search').addEventListener('input',()=>{
   page=1;
   clearTimeout(timer);
   timer=setTimeout(load,350);
 });
+
 $('refresh').onclick=load;
+
 $('prev').onclick=()=>{
   if(page>1){
     page--;
     load();
   }
 };
+
 $('next').onclick=()=>{
   if(hasNext){
     page++;
     load();
   }
 };
+
 $('pageInput').addEventListener('keydown',event=>{
   if(event.key==='Enter'){
     event.preventDefault();
@@ -184,6 +353,28 @@ $('pageInput').addEventListener('keydown',event=>{
     event.target.blur();
   }
 });
+
+$('closeModal').addEventListener('click',closePlayer);
+
+$('modalOverlay').addEventListener('click',event=>{
+  if(event.target===$('modalOverlay')){
+    closePlayer();
+  }
+});
+
+document.addEventListener('keydown',event=>{
+  if($('modalOverlay').hidden)return;
+
+  if(event.key==='Escape'){
+    closePlayer();
+  }
+
+  if(event.key==='Tab'){
+    event.preventDefault();
+    $('closeModal').focus();
+  }
+});
+
 load();
 </script>
 </body>
