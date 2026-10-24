@@ -1,0 +1,1 @@
+{"functions":{"api/leaderboard.js":{"maxDuration":20}},"rewrites":[{"source":"/api/leaderboard","destination":"/api/leaderboard.js"}]}

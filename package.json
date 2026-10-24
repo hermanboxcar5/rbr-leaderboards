@@ -1,0 +1,1 @@
+{"name":"rbr-leaderboard-vercel","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vercel dev"},"dependencies":{"@jellycade/script":"^1.0.1"}}
